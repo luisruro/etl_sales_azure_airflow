@@ -1,0 +1,18 @@
+# Environment
+.env
+
+# Python
+__pycache__/
+
+# uv
+.venv
+uv.lock
+
+
+# Logs
+logs
+
+# OS
+.DS_Store
+
+instruction.txt

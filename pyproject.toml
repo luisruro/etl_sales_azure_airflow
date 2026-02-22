@@ -1,0 +1,15 @@
+[project]
+name = "etl-sales-azure-airflow"
+version = "0.1.0"
+description = "ETL pipeline using Python and Pandas to extract data from Azure Blob Storage, transform it into a star schema, and load it incrementally into Azure SQL, orchestrated with Apache Airflow"
+readme = "README.md"
+requires-python = ">=3.11"
+
+dependencies = [
+    "pandas",
+    "numpy",
+    "azure-storage-blob",
+    "sqlalchemy",
+    "pyodbc",
+    "python-dotenv"
+]
