@@ -66,6 +66,18 @@ class DatabaseConnection:
         finally:
             cursor.close()
             conn.close()
+            
+    def create_schema(self, filepath):
+        try:
+            conn = self.get_connection(self.target_db)
+            cursor = conn.cursor()
+            self.run_sql_query_file(cursor, filepath)
+            logger.info(f"Schema created successfully")
+        except Exception as e:
+            logger.error(f'Error creating schema: {e}')
+        finally:
+            cursor.close()
+            conn.close()
         
             
             
@@ -75,4 +87,4 @@ class DatabaseConnection:
 if __name__ == "__main__":
     connection = DatabaseConnection()
     
-    connection.create_database("db/migrations/01_create_database.sql")
+    connection.create_schema("db/migrations/02_create_schema.sql")
