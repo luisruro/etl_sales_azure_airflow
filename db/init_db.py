@@ -39,7 +39,40 @@ class DatabaseConnection:
             logger.warning(f"Error connecting the database: {e}")
             raise
         
+    
+    def run_sql_query_file(self, cursor, filepath):
+        try:
+            with open(filepath, "r") as f:
+                sql_query = f.read()
+            
+            cursor.execute(sql_query)
+            
+            logger.info(f"Query executed in: {filepath}")
+        except FileNotFoundError as e:
+            logger.error(f'File not found in {filepath}: {e}')
+            raise
+        except Exception as e:
+            logger.error(f'Error executing query in {filepath}: {e}')
+            
+    def create_database(self, filepath):
+        try:
+            conn = self.get_connection("master")
+            conn.autocommit = True
+            cursor = conn.cursor()
+            self.run_sql_query_file(cursor, filepath)
+            logger.info(f"Database created successfully")
+        except Exception as e:
+            logger.error(f'Error creating database in {filepath}: {e}')
+        finally:
+            cursor.close()
+            conn.close()
+        
+            
+            
+    
+    
+        
 if __name__ == "__main__":
     connection = DatabaseConnection()
     
-    connection.get_connection("master")
+    connection.create_database("db/migrations/01_create_database.sql")
