@@ -79,7 +79,17 @@ class DatabaseConnection:
             cursor.close()
             conn.close()
         
-            
+    def create_table(self, filepath):
+        try:
+            conn = self.get_connection(self.target_db)
+            cursor = conn.cursor()
+            migrations = [
+                
+            ]
+        except:
+            print('Something went wrong')
+        finally:
+            print('The try except is finished')       
             
     
     
