@@ -12,7 +12,7 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-class DatabaseConnection:
+class Database:
     
     def __init__(self):
       self.server = os.getenv("AZURE_SQL_SERVER")
@@ -21,7 +21,10 @@ class DatabaseConnection:
       self.target_db = os.getenv("TARGET_DB")
       
     
-    def get_connection(self, database:str):
+    def get_connection(self, database:str = None):
+        
+        if database is None:
+            database = self.target_db
         
         try:
             conn = pyodbc.connect(
@@ -31,6 +34,7 @@ class DatabaseConnection:
                 f"UID={self.username};"
                 f"PWD={self.password};"
                 "Encrypt=yes;"
+                "Connection Timeout=60;"
             )
             
             logger.info(f"Connection successfully to {database}")
@@ -53,8 +57,11 @@ class DatabaseConnection:
             raise
         except Exception as e:
             logger.error(f'Error executing query in {filepath}: {e}')
+            raise
             
     def create_database(self, filepath):
+        conn = None
+        cursor = None
         try:
             conn = self.get_connection("master")
             conn.autocommit = True
@@ -64,37 +71,54 @@ class DatabaseConnection:
         except Exception as e:
             logger.error(f'Error creating database in {filepath}: {e}')
         finally:
-            cursor.close()
-            conn.close()
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
             
     def create_schema(self, filepath):
+        cursor = None
+        conn = None
         try:
             conn = self.get_connection(self.target_db)
             cursor = conn.cursor()
             self.run_sql_query_file(cursor, filepath)
             logger.info(f"Schema created successfully")
+            conn.commit()
         except Exception as e:
             logger.error(f'Error creating schema: {e}')
         finally:
-            cursor.close()
-            conn.close()
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
         
-    def create_table(self, filepath):
+    def create_table(self, filepath:list[str]):
+        cursor = None
+        conn = None
         try:
             conn = self.get_connection(self.target_db)
             cursor = conn.cursor()
-            migrations = [
-                
-            ]
-        except:
-            print('Something went wrong')
+            for script in filepath:
+                self.run_sql_query_file(cursor, script)
+                logger.info(f"Table created successfully from file: {script}")
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            logger.error(f'Error creating table in file: {e}')
+            raise
         finally:
-            print('The try except is finished')       
-            
-    
-    
-        
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()     
+               
 if __name__ == "__main__":
-    connection = DatabaseConnection()
+    db = Database()
     
-    connection.create_schema("db/migrations/02_create_schema.sql")
+    db.create_schema("db/migrations/02_create_schema.sql")
+    
+    db.create_table([
+        "db/migrations/03_create_dim_tables.sql",
+        "db/migrations/04_create_fact_table.sql"
+    ])
