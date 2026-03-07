@@ -9,6 +9,7 @@ dependencies = [
     "pandas",
     "numpy",
     "azure-storage-blob",
+    "azure-storage-file-datalake",
     "sqlalchemy",
     "pyodbc",
     "python-dotenv"
