@@ -1,5 +1,5 @@
 CREATE TABLE gold.fact_sales(
-    sale_id INT PRIMARY KEY,
+    sale_id INT PRIMARY KEY IDENTITY(1,1),
     order_id INT,
     product_id INT,
     region_id INT,
