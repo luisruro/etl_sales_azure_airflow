@@ -108,10 +108,10 @@ class DataTransformer:
         
         # Columns for date dimension
         
-        df_transformed['day'] = df_transformed['order_date'].dt.day
-        df_transformed['month'] = df_transformed['order_date'].dt.month
-        df_transformed['quarter'] = df_transformed['order_date'].dt.quarter
-        df_transformed['year'] = df_transformed['order_date'].dt.year
+        df_transformed['day_num'] = df_transformed['order_date'].dt.day
+        df_transformed['month_num'] = df_transformed['order_date'].dt.month
+        df_transformed['quarter_num'] = df_transformed['order_date'].dt.quarter
+        df_transformed['year_num'] = df_transformed['order_date'].dt.year
         df_transformed['day_of_week'] = df_transformed['order_date'].dt.day_name()
         
         return self.build_star_schema(df_transformed)
@@ -131,7 +131,7 @@ class DataTransformer:
         return dim_payment
     
     def build_dim_date(self, df: pd.DataFrame) -> pd.DataFrame:
-        dim_date = df[['order_date', 'day', 'month', 'quarter', 'year', 'day_of_week']].drop_duplicates().reset_index(drop=True)
+        dim_date = df[['order_date', 'day_num', 'month_num', 'quarter_num', 'year_num', 'day_of_week']].drop_duplicates().reset_index(drop=True)
         return dim_date
     
     def build_fact_sales(self, df: pd.DataFrame) -> pd.DataFrame:

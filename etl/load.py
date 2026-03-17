@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 import pandas as pd
 import os
 from dotenv import load_dotenv
@@ -19,12 +19,16 @@ class DataLoader:
             conn_url = (
                 f"mssql+pyodbc://{os.getenv('AZURE_SQL_USERNAME')}:{os.getenv('AZURE_SQL_PASSWORD')}"
                 f"@{os.getenv('AZURE_SQL_SERVER')}/{os.getenv('TARGET_DB')}"
-                f"?driver=ODBC+Driver+18+for+SQL+Server"
+                "?driver=ODBC+Driver+18+for+SQL+Server"
+                "&Encrypt=yes"
+                "&TrustServerCertificate=no"
+                "&Connection Timeout=30"
             )
             
             engine = create_engine(conn_url)
             
-            logger.info("Database engine created successfully")
+            with engine.connect() as conn:
+                logger.info("Database connection test successful")
             
             return engine
         except Exception as e:
@@ -35,6 +39,7 @@ class DataLoader:
         """
         Insert new records into the dimension tables and return the complete dimension with IDs
         """
+        df = df.drop_duplicates(subset=[unique_column])
         
         # Read what already exists in the database
         existing_records = pd.read_sql(f"SELECT * FROM gold.{table_name}", self.engine)
@@ -63,11 +68,23 @@ class DataLoader:
         """
         fact = fact_df.copy()
         
+        logger.info(f"Fact rows before insert: {len(fact)}")
+        
+        fact['order_date'] = pd.to_datetime(fact['order_date'])
+        dim_date['order_date'] = pd.to_datetime(dim_date['order_date'])
+        
+        dim_product = dim_product.drop_duplicates(subset=['product_category'])
+        dim_region = dim_region.drop_duplicates(subset=['customer_region'])
+        dim_payment = dim_payment.drop_duplicates(subset=['payment_method'])
+        dim_date = dim_date.drop_duplicates(subset=['order_date'])
+
         # Merge to get the real IDs from database
         fact = fact.merge(dim_product[['product_id', 'product_category']], on='product_category', how='left')
         fact = fact.merge(dim_region[['region_id', 'customer_region']], on='customer_region', how='left')
         fact = fact.merge(dim_date[['date_id', 'order_date']], on='order_date', how='left')
         fact = fact.merge(dim_payment[['payment_method_id', 'payment_method']], on='payment_method', how='left')
+        
+        logger.info(f"Fact rows after joins: {len(fact)}")
         
         # Get the fact table columns
         fact = fact[[
@@ -75,6 +92,11 @@ class DataLoader:
             'date_id', 'price', 'discount_percent', 'discounted_price',
             'quantity_sold', 'total_revenue', 'rating', 'review_count'
         ]]
+        
+        if len(fact) != len(fact_df):
+            raise ValueError(
+                f"Row count mismatch after joins. Expected {len(fact_df)}, got {len(fact)}"
+    )
         
         fact.to_sql(
             name='fact_sales',
@@ -106,4 +128,5 @@ class DataLoader:
             logger.info("Data load completed successfully")
         except Exception as e:
             logger.error(f"An error loading data: {e}")
+            raise
         

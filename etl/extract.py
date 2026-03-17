@@ -18,6 +18,7 @@ class DataLakeExtractor:
         self.container_name = os.getenv("AZURE_CONTAINER_NAME")
         self.new_files_path = os.getenv("NEW_DATA_DIRECTORY")
         self.processed_file_path = os.getenv("PROCESSED_DATA_DESTINATION")
+        self.error_file_path = os.getenv("ERROR_DATA_DESTINATION")
         self.datalake_service_client = DataLakeServiceClient.from_connection_string(self.connection_string)
         
     def list_files(self) -> list[str]:
@@ -57,7 +58,7 @@ class DataLakeExtractor:
             logger.error(f'Error extracting file {filepath}: {e}')
             raise
         
-    def move_files(self, filename:str):
+    def move_files(self, filename:str, destination:str):
         """
         destination: 'processed' or 'error' 
         """
@@ -68,9 +69,14 @@ class DataLakeExtractor:
             base_filename = os.path.basename(filename)
             
             source_path = f"{self.new_files_path}/{base_filename}"
-            destination_path = f"{self.processed_file_path}/{base_filename}"
+            
+            if destination == 'processed':
+                destination_path = f"{self.processed_file_path}/{base_filename}"
+            else:
+                destination_path = f"{self.error_file_path}/{base_filename}"
             
             source_client = file_system_client.get_file_client(source_path)
+            
             source_client.rename_file(
                 f"{self.container_name}/{destination_path}"
             )

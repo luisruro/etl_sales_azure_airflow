@@ -1,6 +1,7 @@
 from utils.logger import get_logger
 from etl.extract import DataLakeExtractor
 from etl.transform import DataTransformer
+from etl.load import DataLoader
 
 logger = get_logger(__name__)
 
@@ -12,22 +13,32 @@ def run_pipeline():
 
         extractor = DataLakeExtractor()
         transformer = DataTransformer()
+        loader = DataLoader()
         raw_files = extractor.list_files()
+        
+        if not raw_files:
+            logger.info("No new files to process")
+            return
         
         for file in raw_files:
             df = extractor.extract_file(file)
-            #extractor.move_files(file)
-            logger.info(f"Extraction finished \n {df.info()}")
+            logger.info(f"Extraction finished - shape: {df.shape}")
             
             transformed = transformer.transform(df)
             logger.info(f"Transformed finished")
             
-            logger.info("ETL Finished Successfully")
+            loader.load(transformed)
+            
+            extractor.move_files(file, "processed")
+        
+        logger.info("ETL Finished Successfully")
 
         return transformed
-    except Exception:
-        #extractor.move_files(file)
-        logger.exception("Pipeline failed")
+    
+    except Exception as e:
+        if 'file' in locals():
+            extractor.move_files(file, "error")
+        logger.exception(f"Pipeline failed {e}")
         raise
     
 

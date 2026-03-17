@@ -7,7 +7,7 @@ CREATE TABLE gold.fact_sales(
     date_id INT,
     price DECIMAL(10,2),
     discount_percent DECIMAL(5,2),
-    discount_price DECIMAL(10,2),
+    discounted_price DECIMAL(10,2),
     quantity_sold INT,
     total_revenue DECIMAL(10,2),
     rating DECIMAL(3,2),
