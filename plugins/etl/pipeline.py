@@ -1,7 +1,7 @@
-from plugins.utils.logger import get_logger
-from plugins.etl.extract import DataLakeExtractor
-from plugins.etl.transform import DataTransformer
-from plugins.etl.load import DataLoader
+from utils.logger import get_logger
+from etl.extract import DataLakeExtractor
+from etl.transform import DataTransformer
+from etl.load import DataLoader
 
 logger = get_logger(__name__)
 
@@ -32,8 +32,6 @@ def run_pipeline():
             extractor.move_files(file, "processed")
         
         logger.info("ETL Finished Successfully")
-
-        return transformed
     
     except Exception as e:
         if 'file' in locals():
