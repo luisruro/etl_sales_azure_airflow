@@ -44,6 +44,10 @@ class DataLoader:
         # Read what already exists in the database
         existing_records = pd.read_sql(f"SELECT * FROM gold.{table_name}", self.engine)
         
+        if unique_column == 'order_date':
+            existing_records['order_date'] = pd.to_datetime(existing_records['order_date'])
+            df['order_date'] = pd.to_datetime(df['order_date'])
+        
         # Filter only new records
         new_records = df[~df[unique_column].isin(existing_records[unique_column])]
         
