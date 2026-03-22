@@ -1,7 +1,12 @@
-from utils.logger import get_logger
-from etl.extract import DataLakeExtractor
-from etl.transform import DataTransformer
-from etl.load import DataLoader
+import sys
+import os
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'plugins'))
+
+from plugins.utils.logger import get_logger
+from plugins.etl.extract import DataLakeExtractor
+from plugins.etl.transform import DataTransformer
+from plugins.etl.load import DataLoader
 
 logger = get_logger(__name__)
 
