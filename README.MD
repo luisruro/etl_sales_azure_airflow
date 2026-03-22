@@ -222,7 +222,7 @@ docker compose up -d
 
 | Variable | Description |
 |----------|-------------|
-| `AIRFLOW_UID` | Airflow user ID (use `50000`) |
+| `AIRFLOW_UID` | Airflow user ID. On macOS/Linux run `echo -e "AIRFLOW_UID=$(id -u)" > .env` to set it automatically. On Windows set it as `50000` |
 | `AZURE_STORAGE_CONNECTION_STRING` | Azure Data Lake connection string |
 | `AZURE_CONTAINER_NAME` | Blob container name (`raw-data`) |
 | `NEW_DATA_DIRECTORY` | New files directory (`new`) |
